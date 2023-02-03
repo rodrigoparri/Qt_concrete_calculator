@@ -150,14 +150,6 @@ class MainWindow(QtW.QMainWindow):
 
         central_widget.setLayout(layout)
 
-    def addFormRow(self, layout, label_tx, entry_tx):
-
-        label = QtW.QLabel(label_tx)
-        entry = QtW.QLineEdit(self)
-        entry.setPlaceholderText(entry_tx)
-        layout.addRow(label, entry)
-
-
 if __name__ == "__main__":
     app = QtW.QApplication([])
     mainWindow = MainWindow()
