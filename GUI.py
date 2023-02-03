@@ -1,5 +1,5 @@
 from PySide6 import QtWidgets as QtW
-from PySide6 import  QtGui as QtG
+from PySide6 import QtGui as QtG
 
 
 class RenderArea(QtW.QWidget):
@@ -7,7 +7,7 @@ class RenderArea(QtW.QWidget):
     def __init__(self, parent = None):
         super(RenderArea, self).__init__(parent)
 
-        self.setMinimumSize(150, 200)
+        self.setMinimumSize(200, 200)
         # self.setMaximumSize(400, 600)
         self.setBackgroundRole(QtG.QPalette.Base)
         self.setAutoFillBackground(True)
@@ -30,23 +30,6 @@ class RenderArea(QtW.QWidget):
 
     def set_input_values(self, values: dict):
         self.input_values = values
-
-
-    # def get_b(self):
-    #     b = self.input_values["b"]
-    #     return b
-    #
-    # def get_h(self):
-    #     h = self.input_values["h"]
-    #     return h
-    #
-    # def get_As1(self):
-    #     As1 = self.input_values["As1"]
-    #     return As1
-    #
-    # def get_As2(self):
-    #     As2 = self.input_values["As2"]
-    #     return As2
 
     def paintEvent(self, event) -> None:  # doesn´t return anything
 
@@ -75,6 +58,7 @@ class MainWindow(QtW.QMainWindow):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("Concrete Calculator")
+        self.setMaximumSize(400,300)
         #---------------------MAIN WIDGET------------------
         central_widget = QtW.QWidget()
         self.setCentralWidget(central_widget)
@@ -97,6 +81,8 @@ class MainWindow(QtW.QMainWindow):
         self.ys_entry.setPlaceholderText("1.15")
         self.Md_entry = QtW.QLineEdit(self)
         self.Md_entry.setPlaceholderText("300")
+        self.x_d_entry = QtW.QLineEdit(self)
+        self.x_d_entry.setPlaceholderText("x/d")
 
         self.b_label = QtW.QLabel("b (mm): ")
         self.b_label.setBuddy(self.b_entry)
@@ -114,12 +100,19 @@ class MainWindow(QtW.QMainWindow):
         self.ys_label.setBuddy(self.ys_entry)
         self.Md_label = QtW.QLabel("Md (mkN): ")
         self.Md_label.setBuddy(self.Md_entry)
+        self.x_d_label = QtW.QLabel("x/d")
+        self.x_d_label.setBuddy(self.x_d_entry)
 
         geo_separator = QtW.QFrame()
         geo_separator.setFrameShape(QtW.QFrame.HLine)
         mat_separator = QtW.QFrame()
         mat_separator.setFrameShape(QtW.QFrame.HLine)
+        adv_separator = QtW.QFrame()
+        adv_separator.setFrameShape(QtW.QFrame.HLine)
 
+        #-------------------BUTTONS----------------------
+        self.calc_button = QtW.QPushButton("Calculate")
+        self.download_button = QtW.QPushButton("Download")
 
         #--------------------RENDERAREA------------------
         self.render_area = RenderArea()
@@ -147,8 +140,13 @@ class MainWindow(QtW.QMainWindow):
         layout.addWidget(mat_separator, 8, 0, 1, 2)
         layout.addWidget(self.Md_label, 9, 0)
         layout.addWidget(self.Md_entry, 9, 1)
+        layout.addWidget(adv_separator, 10, 0, 1, 2)
+        layout.addWidget(self.x_d_label, 11,0)
+        layout.addWidget(self.x_d_entry, 11, 1)
+        layout.addWidget(self.calc_button, 12, 1)
+        layout.addWidget(self.download_button, 12, 2)
 
-        layout.addWidget(self.render_area, 0, 2, 10, 1)
+        layout.addWidget(self.render_area, 0, 2, 12, 1)
 
         central_widget.setLayout(layout)
 
@@ -158,10 +156,6 @@ class MainWindow(QtW.QMainWindow):
         entry = QtW.QLineEdit(self)
         entry.setPlaceholderText(entry_tx)
         layout.addRow(label, entry)
-
-
-
-
 
 
 if __name__ == "__main__":
