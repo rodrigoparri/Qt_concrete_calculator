@@ -85,6 +85,8 @@ class MainWindow(QtW.QMainWindow):
         self.b_entry.setPlaceholderText("200")
         self.h_entry = QtW.QLineEdit(self)
         self.h_entry.setPlaceholderText("100")
+        self.c_entry = QtW.QLineEdit(self)
+        self.c_entry.setPlaceholderText("30")
         self.fck_entry = QtW.QLineEdit(self)
         self.fck_entry.setPlaceholderText("25")
         self.yc_entry = QtW.QLineEdit(self)
@@ -93,8 +95,6 @@ class MainWindow(QtW.QMainWindow):
         self.fyk_entry.setPlaceholderText("500")
         self.ys_entry = QtW.QLineEdit(self)
         self.ys_entry.setPlaceholderText("1.15")
-        self.c_entry = QtW.QLineEdit(self)
-        self.c_entry.setPlaceholderText("30")
         self.Md_entry = QtW.QLineEdit(self)
         self.Md_entry.setPlaceholderText("300")
 
@@ -102,6 +102,8 @@ class MainWindow(QtW.QMainWindow):
         self.b_label.setBuddy(self.b_entry)
         self.h_label = QtW.QLabel("h (mm): ")
         self.h_label.setBuddy(self.h_entry)
+        self.c_label = QtW.QLabel("c (mm): ")
+        self.c_label.setBuddy(self.c_entry)
         self.fck_label = QtW.QLabel("fck (MPa): ")
         self.fck_label.setBuddy(self.fck_entry)
         self.yc_label = QtW.QLabel("γc: ")
@@ -110,10 +112,14 @@ class MainWindow(QtW.QMainWindow):
         self.fyk_label.setBuddy(self.fyk_entry)
         self.ys_label = QtW.QLabel("γs: ")
         self.ys_label.setBuddy(self.ys_entry)
-        self.c_label = QtW.QLabel("c (mm): ")
-        self.c_label.setBuddy(self.c_entry)
         self.Md_label = QtW.QLabel("Md (mkN): ")
         self.Md_label.setBuddy(self.Md_entry)
+
+        geo_separator = QtW.QFrame()
+        geo_separator.setFrameShape(QtW.QFrame.HLine)
+        mat_separator = QtW.QFrame()
+        mat_separator.setFrameShape(QtW.QFrame.HLine)
+
 
         #--------------------RENDERAREA------------------
         self.render_area = RenderArea()
@@ -127,33 +133,24 @@ class MainWindow(QtW.QMainWindow):
         layout.addWidget(self.b_entry, 0, 1)
         layout.addWidget(self.h_label, 1, 0)
         layout.addWidget(self.h_entry, 1, 1)
-        layout.addWidget(self.fck_label, 2, 0)
-        layout.addWidget(self.fck_entry, 2, 1)
-        layout.addWidget(self.yc_label, 3, 0)
-        layout.addWidget(self.yc_entry, 3, 1)
-        layout.addWidget(self.fyk_label, 4, 0)
-        layout.addWidget(self.fyk_entry, 4, 1)
-        layout.addWidget(self.ys_label, 5, 0)
-        layout.addWidget(self.ys_entry, 5, 1)
-        layout.addWidget(self.c_label, 6, 0)
-        layout.addWidget(self.c_entry, 6, 1)
-        layout.addWidget(self.Md_label, 7, 0)
-        layout.addWidget(self.Md_entry, 7, 1)
+        layout.addWidget(self.c_label, 2, 0)
+        layout.addWidget(self.c_entry, 2, 1)
+        layout.addWidget(geo_separator, 3, 0, 1, 2)
+        layout.addWidget(self.fck_label, 4, 0)
+        layout.addWidget(self.fck_entry, 4, 1)
+        layout.addWidget(self.yc_label, 5, 0)
+        layout.addWidget(self.yc_entry, 5, 1)
+        layout.addWidget(self.fyk_label, 6, 0)
+        layout.addWidget(self.fyk_entry, 6, 1)
+        layout.addWidget(self.ys_label, 7, 0)
+        layout.addWidget(self.ys_entry, 7, 1)
+        layout.addWidget(mat_separator, 8, 0, 1, 2)
+        layout.addWidget(self.Md_label, 9, 0)
+        layout.addWidget(self.Md_entry, 9, 1)
 
-        layout.addWidget(self.render_area, 0, 2, 8, 1)
+        layout.addWidget(self.render_area, 0, 2, 10, 1)
 
         central_widget.setLayout(layout)
-
-
-        # for i in self.form_fields:
-        #     entry = QtW.QLineEdit()
-        #     entry.setPlaceholderText(self.form_fields[i][1])
-        #
-        #     label = QtW.QLabel(self.form_fields[i][0])
-        #     label.setBuddy(entry)
-        #
-        #     layout.addWidget(label, i, 0)
-        #     layout.addWidget(entry, i, 1)
 
     def addFormRow(self, layout, label_tx, entry_tx):
 
