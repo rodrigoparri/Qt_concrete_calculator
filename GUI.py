@@ -9,8 +9,7 @@ class RenderArea(QtW.QWidget):
     def __init__(self, parent = None):
         super(RenderArea, self).__init__(parent)
 
-        self.setMinimumSize(200, 200)
-        # self.setMaximumSize(400, 600)
+        self.setFixedSize(300, 300)
         self.setBackgroundRole(QtG.QPalette.Base)
         self.setAutoFillBackground(True)
 
@@ -19,7 +18,10 @@ class RenderArea(QtW.QWidget):
 
         self.input_values = {
             "b": 100,
-            "h": 150
+            "h": 150,
+            "As1":0,
+            "As2":0,
+            "c":0
         }
 
     def set_pen(self, pen):
@@ -43,48 +45,72 @@ class RenderArea(QtW.QWidget):
             width = self.width()
             height = self.height()
 
+            # beam dimensions
             b = self.input_values.get("b", 0)
             h = self.input_values.get("h", 0)
+            c = self.input_values.get("c", 0)
 
+            # window dimensions
             x = (width - b) / 2
             y = (height - h) / 2
 
+            # reinforcement area
             As1 = self.input_values.get("As1", 0)
             As2 = self.input_values.get("As2", 0)
 
-            painter.drawRect(x, y, b, h)
+            # reinforcement area rectangles
+            b_s = b - 2 * c
+            hc1 = As1 / b_s
+            hc2 = As2 / b_s
 
+            x_rect1 = x + c
+            y_rect1 = y + c
+            y_rect2 = y + h
+            painter.drawRect(x, y, b, h)
+            painter.drawRect(x + c, y + c, b_s, hc1)
+            painter.drawRect(x + c, y + h - c, b_s, hc2)
 class MainWindow(QtW.QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("Concrete Calculator")
-        self.setFixedSize(400,300)
+        # self.setFixedSize(500,350)
         #---------------------MAIN WIDGET------------------
         central_widget = QtW.QWidget()
         self.setCentralWidget(central_widget)
 
-        #-----------------FORM WIDGETS---------------------
+        #-----------------PLACE HOLDER---------------------
+        self.b_plcholder = "200"
+        self.h_plcholder = "300"
+        self.expo_plcholder = "XC1"
+        self.fck_plcholder = "25"
+        self.yc_plcholder = "1.5"
+        self.fyk_plcholder = "500"
+        self.ys_plcholder = "1.15"
+        self.Md_plcholder = "300"
+        self.x_d_plcholder = "0.3"
 
+        #-----------------FORM WIDGETS---------------------
         self.b_entry = QtW.QLineEdit(self)
-        self.b_entry.setPlaceholderText("200")
+        self.b_entry.setPlaceholderText(self.b_plcholder)
         self.h_entry = QtW.QLineEdit(self)
-        self.h_entry.setPlaceholderText("300")
+        self.h_entry.setPlaceholderText(self.h_plcholder)
         self.expo_entry = QtW.QLineEdit(self)
-        self.expo_entry.setPlaceholderText("XC1")
+        self.expo_entry.setPlaceholderText(self.expo_plcholder)
         self.fck_entry = QtW.QLineEdit(self)
-        self.fck_entry.setPlaceholderText("25")
+        self.fck_entry.setPlaceholderText(self.fck_plcholder)
         self.yc_entry = QtW.QLineEdit(self)
-        self.yc_entry.setPlaceholderText("1.5")
+        self.yc_entry.setPlaceholderText(self.yc_plcholder)
         self.fyk_entry = QtW.QLineEdit(self)
-        self.fyk_entry.setPlaceholderText("500")
+        self.fyk_entry.setPlaceholderText(self.fyk_plcholder)
         self.ys_entry = QtW.QLineEdit(self)
-        self.ys_entry.setPlaceholderText("1.15")
+        self.ys_entry.setPlaceholderText(self.ys_plcholder)
         self.Md_entry = QtW.QLineEdit(self)
-        self.Md_entry.setPlaceholderText("300")
+        self.Md_entry.setPlaceholderText(self.Md_plcholder)
         self.x_d_entry = QtW.QLineEdit(self)
-        self.x_d_entry.setPlaceholderText("x/d")
+        self.x_d_entry.setPlaceholderText(self.x_d_plcholder)
+        self.defaults_checkbox = QtW.QCheckBox("Set defaults", self)
 
         self.b_label = QtW.QLabel("b (mm): ")
         self.b_label.setBuddy(self.b_entry)
@@ -128,8 +154,10 @@ class MainWindow(QtW.QMainWindow):
         self.render_area = RenderArea()
         self.render_area.set_antialising(True)
 
-        #--------------------BUTTON CONNECTIONS-----------
+        #--------------------CONNECTIONS-----------
         self.calc_button.clicked.connect(self.calculate)
+        self.defaults_checkbox.stateChanged.connect(self.set_defaults)
+
         # ------------------- LAYOUT----------------------
         layout = QtW.QGridLayout()
         layout.setRowStretch(0, 20)
@@ -155,8 +183,10 @@ class MainWindow(QtW.QMainWindow):
         layout.addWidget(adv_separator, 10, 0, 1, 2)
         layout.addWidget(self.x_d_label, 11,0)
         layout.addWidget(self.x_d_entry, 11, 1)
-        layout.addWidget(self.calc_button, 12, 1)
-        layout.addWidget(self.download_button, 12, 2)
+        layout.addWidget(self.defaults_checkbox, 12, 0)
+        layout.addWidget(self.calc_button, 13, 1)
+        layout.addWidget(self.download_button, 13, 2)
+
 
         layout.addWidget(self.render_area, 0, 2, 12, 1)
 
@@ -165,20 +195,50 @@ class MainWindow(QtW.QMainWindow):
     def calculate(self):
         b = int(self.b_entry.text())
         h = int(self.h_entry.text())
-        # expo = self.expo_entry.text()
-        # fck = int(self.fck_entry.text())
-        # yc = float(self.yc_entry.text())
-        # fyk = int(self.fyk_entry.text())
-        # ys = float(self.ys_entry.text())
-        # Md = float(self.Md_entry.text())
-        # x_d = float(self.x_d_entry.text())
+        expo = self.expo_entry.text()
+        fck = int(self.fck_entry.text())
+        yc = float(self.yc_entry.text())
+        fyk = int(self.fyk_entry.text())
+        ys = float(self.ys_entry.text())
+        Md = float(self.Md_entry.text())
+        x_d = float(self.x_d_entry.text())
 
-        # beam = RectBeam(b, h, expo, fck, yc, fyk, ys, Md, x_d)
+        beam = RectBeam(b, h, expo, fck, yc, fyk, ys, Md, x_d)
+        As = beam.As()
 
         self.render_area.input_values["b"] = b
         self.render_area.input_values["h"] = h
+        self.render_area.input_values["As1"] = As[0]
+        self.render_area.input_values["As2"] = As[1]
+        self.render_area.input_values["c"] = beam.c
 
         self.render_area.update()
+
+    def set_defaults(self, state):
+        if self.defaults_checkbox.isChecked():
+            self.b_entry.setText(self.b_plcholder)
+            self.h_entry.setText(self.h_plcholder)
+            self.expo_entry.setText(self.expo_plcholder)
+            self.fck_entry.setText(self.fck_plcholder)
+            self.yc_entry.setText(self.yc_plcholder)
+            self.fyk_entry.setText(self.fyk_plcholder)
+            self.ys_entry.setText(self.ys_plcholder)
+            self.Md_entry.setText(self.Md_plcholder)
+            self.x_d_entry.setText(self.x_d_plcholder)
+
+        else:
+            self.b_entry.setText("")
+            self.h_entry.setText("")
+            self.expo_entry.setText("")
+            self.fck_entry.setText("")
+            self.yc_entry.setText("")
+            self.fyk_entry.setText("")
+            self.ys_entry.setText("")
+            self.Md_entry.setText("")
+            self.x_d_entry.setText("")
+
+    def unset_defaults(self):
+        pass
 
 
 if __name__ == "__main__":
