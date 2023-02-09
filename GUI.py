@@ -17,8 +17,8 @@ class RenderArea(QtW.QWidget):
         self.antialiased = False
 
         self.input_values = {
-            "b": 100,
-            "h": 150,
+            "b": 0,
+            "h": 0,
             "As1":0,
             "As2":0,
             "c":0
@@ -237,8 +237,6 @@ class MainWindow(QtW.QMainWindow):
             self.Md_entry.setText("")
             self.x_d_entry.setText("")
 
-    def unset_defaults(self):
-        pass
 
 
 if __name__ == "__main__":

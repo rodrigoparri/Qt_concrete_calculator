@@ -20,6 +20,38 @@ class RectBeam:
         "XA2": 0.1,
         "XA3": 0.1,
     }
+    c = {
+        "X0": 15,
+        "XC1":20,
+        "XC2":20,
+        "XC3":20,
+        "XC4":20,
+        "XD1":35,
+        "XD2":35,
+        "XD3":35,
+        "XS1":25,
+        "XS2":30,
+        "XS3":45,
+        # "XF1":,
+        # "XF2":,
+        # "XF3":,
+        # "XF4":,
+        # "XA1":,
+        # "XA2":,
+        # "XA3":
+    }
+    steel = {
+        6: 28.27,
+        8: 50.27,
+        10: 78.54,
+        12: 113.10,
+        14: 153.94,
+        16: 201.06,
+        20: 314.16,
+        25: 490.87,
+        32: 804.25,
+        40: 1256.64
+    }
 
     def __init__(self, b, h, expo, fck, yc, fyk, ys, Md, x_d):
         self.b = b
@@ -39,18 +71,7 @@ class RectBeam:
         self.ds1 = self.h - self.c
         # compression block depth
         self.x = self.ds1 * self.x_d
-        self.steel = {
-            6: 28.27,
-            8: 50.27,
-            10: 78.54,
-            12: 113.10,
-            14: 153.94,
-            16: 201.06,
-            20: 314.16,
-            25: 490.87,
-            32: 804.25,
-            40: 1256.64
-        }
+
     @staticmethod
     def next_aprox(value, interval):
         """
@@ -61,6 +82,7 @@ class RectBeam:
         """
         a = int(value / interval) * value + value
         pass
+
     def As(self):
         """
         this function calculates the necessary reinforcement so the beam´s capacity is bigger
