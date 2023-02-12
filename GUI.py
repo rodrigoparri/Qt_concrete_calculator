@@ -6,7 +6,7 @@ from concrete_cross_sections.rect_beams import RectBeam
 
 class RenderArea(QtW.QWidget):
     
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super(RenderArea, self).__init__(parent)
 
         self.setFixedSize(300, 300)
@@ -17,11 +17,11 @@ class RenderArea(QtW.QWidget):
         self.antialiased = False
 
         self.input_values = {
-            "b": 0,
-            "h": 0,
-            "As1":0,
-            "As2":0,
-            "c":0
+            "b": 200,
+            "h": 300,
+            "As1": 0,
+            "As2": 0,
+            "c": 0
         }
 
     def set_pen(self, pen):
@@ -42,6 +42,7 @@ class RenderArea(QtW.QWidget):
             if self.antialiased:
                 painter.setRenderHint(QtG.QPainter.Antialiasing)
 
+            # window dimensions
             width = self.width()
             height = self.height()
 
@@ -50,25 +51,36 @@ class RenderArea(QtW.QWidget):
             h = self.input_values.get("h", 0)
             c = self.input_values.get("c", 0)
 
-            # window dimensions
-            x = (width - b) / 2
-            y = (height - h) / 2
-
             # reinforcement area
             As1 = self.input_values.get("As1", 0)
             As2 = self.input_values.get("As2", 0)
 
-            # reinforcement area rectangles
-            b_s = b - 2 * c
-            hc1 = As1 / b_s
-            hc2 = As2 / b_s
+            # scale coefficient
+            alpha = 250 / max(b, h)
 
-            x_rect1 = x + c
-            y_rect1 = y + c
-            y_rect2 = y + h
-            painter.drawRect(x, y, b, h)
-            painter.drawRect(x + c, y + c, b_s, hc1)
-            painter.drawRect(x + c, y + h - c, b_s, hc2)
+            b_ = b * alpha
+            h_= h * alpha
+            c_ = c * alpha
+            As1_ = As1 * alpha
+            As2_ = As2 * alpha
+
+            # top left beam corner
+            x = (width - b_) / 2
+            y = (height - h_) / 2
+
+            # reinforcement area rectangles
+            b_s = b_ - 2 * c_
+            hc1 = As1_ / b_s
+            hc2 = As2_ / b_s
+
+            # main rectangle
+            painter.drawRect(x, y, b_, h_)
+            # top reinforcement rectangle
+            painter.drawRect(x + c_, y + c_, b_s, hc1)
+            # bottom reinforcement rectangle
+            painter.drawRect(x + c_, y + h_ - c_, b_s, hc2)
+
+
 class MainWindow(QtW.QMainWindow):
 
     def __init__(self):
@@ -76,6 +88,7 @@ class MainWindow(QtW.QMainWindow):
 
         self.setWindowTitle("Concrete Calculator")
         # self.setFixedSize(500,350)
+        # self.setSizePolicy()
         #---------------------MAIN WIDGET------------------
         central_widget = QtW.QWidget()
         self.setCentralWidget(central_widget)
@@ -83,7 +96,6 @@ class MainWindow(QtW.QMainWindow):
         #-----------------PLACE HOLDER---------------------
         self.b_plcholder = "200"
         self.h_plcholder = "300"
-        self.expo_plcholder = "XC1"
         self.fck_plcholder = "25"
         self.yc_plcholder = "1.5"
         self.fyk_plcholder = "500"
@@ -96,8 +108,9 @@ class MainWindow(QtW.QMainWindow):
         self.b_entry.setPlaceholderText(self.b_plcholder)
         self.h_entry = QtW.QLineEdit(self)
         self.h_entry.setPlaceholderText(self.h_plcholder)
-        self.expo_entry = QtW.QLineEdit(self)
-        self.expo_entry.setPlaceholderText(self.expo_plcholder)
+        self.expo_combobox = QtW.QComboBox(self)
+        self.find_expo_classes()
+        # self.expo_combobox.setPlaceholderText(self.expo_plcholder)
         self.fck_entry = QtW.QLineEdit(self)
         self.fck_entry.setPlaceholderText(self.fck_plcholder)
         self.yc_entry = QtW.QLineEdit(self)
@@ -117,7 +130,7 @@ class MainWindow(QtW.QMainWindow):
         self.h_label = QtW.QLabel("h (mm): ")
         self.h_label.setBuddy(self.h_entry)
         self.expo_label = QtW.QLabel("Exposure class: ")
-        self.expo_label.setBuddy(self.expo_entry)
+        self.expo_label.setBuddy(self.expo_combobox)
         self.fck_label = QtW.QLabel("fck (MPa): ")
         self.fck_label.setBuddy(self.fck_entry)
         self.yc_label = QtW.QLabel("γc: ")
@@ -167,7 +180,7 @@ class MainWindow(QtW.QMainWindow):
         layout.addWidget(self.h_label, 1, 0)
         layout.addWidget(self.h_entry, 1, 1)
         layout.addWidget(self.expo_label, 2, 0)
-        layout.addWidget(self.expo_entry, 2, 1)
+        layout.addWidget(self.expo_combobox, 2, 1)
         layout.addWidget(geo_separator, 3, 0, 1, 2)
         layout.addWidget(self.fck_label, 4, 0)
         layout.addWidget(self.fck_entry, 4, 1)
@@ -195,7 +208,7 @@ class MainWindow(QtW.QMainWindow):
     def calculate(self):
         b = int(self.b_entry.text())
         h = int(self.h_entry.text())
-        expo = self.expo_entry.text()
+        expo = self.expo_combobox.currentText()
         fck = int(self.fck_entry.text())
         yc = float(self.yc_entry.text())
         fyk = int(self.fyk_entry.text())
@@ -208,9 +221,9 @@ class MainWindow(QtW.QMainWindow):
 
         self.render_area.input_values["b"] = b
         self.render_area.input_values["h"] = h
+        self.render_area.input_values["c"] = beam.c
         self.render_area.input_values["As1"] = As[0]
         self.render_area.input_values["As2"] = As[1]
-        self.render_area.input_values["c"] = beam.c
 
         self.render_area.update()
 
@@ -218,7 +231,7 @@ class MainWindow(QtW.QMainWindow):
         if self.defaults_checkbox.isChecked():
             self.b_entry.setText(self.b_plcholder)
             self.h_entry.setText(self.h_plcholder)
-            self.expo_entry.setText(self.expo_plcholder)
+            self.expo_combobox.setCurrentIndex(0)
             self.fck_entry.setText(self.fck_plcholder)
             self.yc_entry.setText(self.yc_plcholder)
             self.fyk_entry.setText(self.fyk_plcholder)
@@ -229,7 +242,7 @@ class MainWindow(QtW.QMainWindow):
         else:
             self.b_entry.setText("")
             self.h_entry.setText("")
-            self.expo_entry.setText("")
+            self.expo_combobox.setCurrentIndex(0)
             self.fck_entry.setText("")
             self.yc_entry.setText("")
             self.fyk_entry.setText("")
@@ -237,7 +250,10 @@ class MainWindow(QtW.QMainWindow):
             self.Md_entry.setText("")
             self.x_d_entry.setText("")
 
+    def find_expo_classes(self):
 
+        for expo in RectBeam.c:
+            self.expo_combobox.addItem(expo)
 
 if __name__ == "__main__":
     app = QtW.QApplication([])

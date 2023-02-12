@@ -57,9 +57,9 @@ class RectBeam:
         self.b = b
         self.h = h
         try:
-            self.c = self.cracking_exposure_classes[expo]
+            self.c = self.c[expo]
         except KeyError:
-            self.c = None
+            self.c = 30
 
         self.fck = fck
         self.yc = yc
