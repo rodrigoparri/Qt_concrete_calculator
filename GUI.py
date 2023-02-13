@@ -23,6 +23,8 @@ class RenderArea(QtW.QWidget):
             "As2": 0,
             "c": 0
         }
+        # check if moment is positive (True) or negative (False)
+        self.moment = True
 
     def set_pen(self, pen):
         self.pen = pen
@@ -34,6 +36,14 @@ class RenderArea(QtW.QWidget):
 
     def set_input_values(self, values: dict):
         self.input_values = values
+
+    def set_moment(self, sign):
+        """
+        set the momento to positive or negative
+        :param sign: True (positive) False (negative)
+        """
+        self.moment = sign
+        self.update()
 
     def paintEvent(self, event) -> None:  # doesn´t return anything
 
@@ -56,7 +66,7 @@ class RenderArea(QtW.QWidget):
             As2 = self.input_values.get("As2", 0)
 
             # scale coefficient
-            alpha = 250 / max(b, h)
+            alpha = 200 / max(b, h)
 
             b_ = b * alpha
             h_= h * alpha
@@ -75,10 +85,18 @@ class RenderArea(QtW.QWidget):
 
             # main rectangle
             painter.drawRect(x, y, b_, h_)
-            # top reinforcement rectangle
-            painter.drawRect(x + c_, y + c_, b_s, hc1)
-            # bottom reinforcement rectangle
-            painter.drawRect(x + c_, y + h_ - c_, b_s, hc2)
+
+            # check if moment is positive or negative.
+            if self.moment == True:
+                # top reinforcement rectangle
+                painter.drawRect(x + c_, y + c_, b_s, hc2)
+                # bottom reinforcement rectangle
+                painter.drawRect(x + c_, y + h_ - c_, b_s, -1 * hc1)
+            else:
+                # top reinforcement rectangle
+                painter.drawRect(x + c_, y + c_, b_s, hc1)
+                # bottom reinforcement rectangle
+                painter.drawRect(x + c_, y + h_ - c_, b_s, -1 * hc2)
 
 
 class MainWindow(QtW.QMainWindow):
@@ -141,7 +159,7 @@ class MainWindow(QtW.QMainWindow):
         self.ys_label.setBuddy(self.ys_entry)
         self.Md_label = QtW.QLabel("Md (mkN): ")
         self.Md_label.setBuddy(self.Md_entry)
-        self.x_d_label = QtW.QLabel("x/d")
+        self.x_d_label = QtW.QLabel("x/d: ")
         self.x_d_label.setBuddy(self.x_d_entry)
 
         geo_separator = QtW.QFrame()
@@ -167,14 +185,24 @@ class MainWindow(QtW.QMainWindow):
         self.render_area = RenderArea()
         self.render_area.set_antialising(True)
 
+        self.posmoment_radiobutton = QtW.QRadioButton("Positive moment")
+        self.posmoment_radiobutton.setChecked(True)
+        self.negmoment_radiobutton = QtW.QRadioButton("Negative moment")
+
+        moment_group = QtW.QButtonGroup()
+        moment_group.addButton(self.posmoment_radiobutton)
+        moment_group.addButton(self.negmoment_radiobutton)
+
         #--------------------CONNECTIONS-----------
         self.calc_button.clicked.connect(self.calculate)
         self.defaults_checkbox.stateChanged.connect(self.set_defaults)
+        self.posmoment_radiobutton.toggled.connect(lambda: self.render_area.set_moment(True))
+        self.negmoment_radiobutton.toggled.connect(lambda: self.render_area.set_moment(False))
 
         # ------------------- LAYOUT----------------------
         layout = QtW.QGridLayout()
         layout.setRowStretch(0, 20)
-        layout.setColumnStretch(0, 2)
+        layout.setColumnStretch(0, 3)
         layout.addWidget(self.b_label, 0, 0)
         layout.addWidget(self.b_entry, 0, 1)
         layout.addWidget(self.h_label, 1, 0)
@@ -197,11 +225,13 @@ class MainWindow(QtW.QMainWindow):
         layout.addWidget(self.x_d_label, 11,0)
         layout.addWidget(self.x_d_entry, 11, 1)
         layout.addWidget(self.defaults_checkbox, 12, 0)
+        layout.addWidget(self.posmoment_radiobutton, 12, 2)
+        layout.addWidget(self.negmoment_radiobutton, 12, 3)
         layout.addWidget(self.calc_button, 13, 1)
-        layout.addWidget(self.download_button, 13, 2)
+        layout.addWidget(self.download_button, 13, 3)
 
 
-        layout.addWidget(self.render_area, 0, 2, 12, 1)
+        layout.addWidget(self.render_area, 0, 2, 12, 2)
 
         central_widget.setLayout(layout)
 
