@@ -236,26 +236,35 @@ class MainWindow(QtW.QMainWindow):
         central_widget.setLayout(layout)
 
     def calculate(self):
-        b = int(self.b_entry.text())
-        h = int(self.h_entry.text())
-        expo = self.expo_combobox.currentText()
-        fck = int(self.fck_entry.text())
-        yc = float(self.yc_entry.text())
-        fyk = int(self.fyk_entry.text())
-        ys = float(self.ys_entry.text())
-        Md = float(self.Md_entry.text())
-        x_d = float(self.x_d_entry.text())
 
-        beam = RectBeam(b, h, expo, fck, yc, fyk, ys, Md, x_d)
-        As = beam.As()
+        try:
+            b = int(self.b_entry.text())
+            h = int(self.h_entry.text())
+            expo = self.expo_combobox.currentText()
+            fck = int(self.fck_entry.text())
+            yc = float(self.yc_entry.text())
+            fyk = int(self.fyk_entry.text())
+            ys = float(self.ys_entry.text())
+            Md = float(self.Md_entry.text())
+            x_d = float(self.x_d_entry.text())
 
-        self.render_area.input_values["b"] = b
-        self.render_area.input_values["h"] = h
-        self.render_area.input_values["c"] = beam.c
-        self.render_area.input_values["As1"] = As[0]
-        self.render_area.input_values["As2"] = As[1]
+            beam = RectBeam(b, h, expo, fck, yc, fyk, ys, Md, x_d)
+            As = beam.As()
 
-        self.render_area.update()
+            self.render_area.input_values["b"] = b
+            self.render_area.input_values["h"] = h
+            self.render_area.input_values["c"] = beam.c
+            self.render_area.input_values["As1"] = As[0]
+            self.render_area.input_values["As2"] = As[1]
+
+            self.render_area.update()
+
+        except ValueError:
+            invalid_value = QtW.QMessageBox()
+            invalid_value.setText("Attention: The value must be a numerical value only.")
+            invalid_value.setWindowTitle("Invalid value")
+            invalid_value.setIcon(QtW.QMessageBox.Warning)
+            invalid_value.exec()
 
     def set_defaults(self, state):
         if self.defaults_checkbox.isChecked():
