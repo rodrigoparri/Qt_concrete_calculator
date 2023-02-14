@@ -14,17 +14,22 @@ class RenderArea(QtW.QWidget):
         self.setAutoFillBackground(True)
 
         self.pen = QtG.QPen()
-        self.antialiased = False
+        self.antialiased = True
 
         self.input_values = {
             "b": 200,
             "h": 300,
             "As1": 0,
             "As2": 0,
-            "c": 0
+            "c": 0,
+            "n1": 0,
+            "Phi_1": 0,
+            "n2": 0,
+            "Phi_2": 0
         }
         # check if moment is positive (True) or negative (False)
         self.moment = True
+        self.bars = True
 
     def set_pen(self, pen):
         self.pen = pen
@@ -37,13 +42,24 @@ class RenderArea(QtW.QWidget):
     def set_input_values(self, values: dict):
         self.input_values = values
 
-    def set_moment(self, sign):
+    def invert_moment(self):
         """
         set the momento to positive or negative
         :param sign: True (positive) False (negative)
         """
-        self.moment = sign
+        if self.moment == True:
+            self.moment = False
+        else:
+            self.moment = True
         self.update()
+
+    def toggle_bars(self):
+
+        if self.bars == True:
+            self.bars = False
+        else:
+            self.bars = True
+
 
     def paintEvent(self, event) -> None:  # doesn´t return anything
 
@@ -88,15 +104,21 @@ class RenderArea(QtW.QWidget):
 
             # check if moment is positive or negative.
             if self.moment == True:
-                # top reinforcement rectangle
-                painter.drawRect(x + c_, y + c_, b_s, hc2)
-                # bottom reinforcement rectangle
-                painter.drawRect(x + c_, y + h_ - c_, b_s, -1 * hc1)
+                if self.bars == True:
+                    pass
+                else:
+                    # top reinforcement rectangle
+                    painter.drawRect(x + c_, y + c_, b_s, hc2)
+                    # bottom reinforcement rectangle
+                    painter.drawRect(x + c_, y + h_ - c_, b_s, -1 * hc1)
             else:
-                # top reinforcement rectangle
-                painter.drawRect(x + c_, y + c_, b_s, hc1)
-                # bottom reinforcement rectangle
-                painter.drawRect(x + c_, y + h_ - c_, b_s, -1 * hc2)
+                if self.bars == True:
+                    pass
+                else:
+                    # top reinforcement rectangle
+                    painter.drawRect(x + c_, y + c_, b_s, hc1)
+                    # bottom reinforcement rectangle
+                    painter.drawRect(x + c_, y + h_ - c_, b_s, -1 * hc2)
 
 
 class MainWindow(QtW.QMainWindow):
@@ -112,12 +134,13 @@ class MainWindow(QtW.QMainWindow):
         self.setCentralWidget(central_widget)
 
         #-----------------PLACE HOLDER---------------------
-        self.b_plcholder = "200"
-        self.h_plcholder = "300"
+        self.b_plcholder = "300"
+        self.h_plcholder = "500"
         self.fck_plcholder = "25"
         self.yc_plcholder = "1.5"
         self.fyk_plcholder = "500"
         self.ys_plcholder = "1.15"
+        self.dg_plcholder = "20"
         self.Md_plcholder = "300"
         self.x_d_plcholder = "0.3"
 
@@ -137,6 +160,8 @@ class MainWindow(QtW.QMainWindow):
         self.fyk_entry.setPlaceholderText(self.fyk_plcholder)
         self.ys_entry = QtW.QLineEdit(self)
         self.ys_entry.setPlaceholderText(self.ys_plcholder)
+        self.dg_entry = QtW.QLineEdit(self)
+        self.dg_entry.setPlaceholderText(self.dg_plcholder)
         self.Md_entry = QtW.QLineEdit(self)
         self.Md_entry.setPlaceholderText(self.Md_plcholder)
         self.x_d_entry = QtW.QLineEdit(self)
@@ -157,6 +182,7 @@ class MainWindow(QtW.QMainWindow):
         self.fyk_label.setBuddy(self.fyk_entry)
         self.ys_label = QtW.QLabel("γs: ")
         self.ys_label.setBuddy(self.ys_entry)
+        self.dg_label = QtW.QLabel("Max aggregate\n size (mm)")
         self.Md_label = QtW.QLabel("Md (mkN): ")
         self.Md_label.setBuddy(self.Md_entry)
         self.x_d_label = QtW.QLabel("x/d: ")
@@ -185,19 +211,18 @@ class MainWindow(QtW.QMainWindow):
         self.render_area = RenderArea()
         self.render_area.set_antialising(True)
 
-        self.posmoment_radiobutton = QtW.QRadioButton("Positive moment")
-        self.posmoment_radiobutton.setChecked(True)
-        self.negmoment_radiobutton = QtW.QRadioButton("Negative moment")
+        self.invertmoment_radiobutton = QtW.QCheckBox("Invert moment")
+        self.bars_checkbox = QtW.QCheckBox("Suggest bar layout")
 
-        moment_group = QtW.QButtonGroup()
-        moment_group.addButton(self.posmoment_radiobutton)
-        moment_group.addButton(self.negmoment_radiobutton)
+        # moment_group = QtW.QButtonGroup()
+        # moment_group.addButton(self.invertmoment_radiobutton)
+        # moment_group.addButton(self.bars_radiobutton)
 
         #--------------------CONNECTIONS-----------
         self.calc_button.clicked.connect(self.calculate)
         self.defaults_checkbox.stateChanged.connect(self.set_defaults)
-        self.posmoment_radiobutton.toggled.connect(lambda: self.render_area.set_moment(True))
-        self.negmoment_radiobutton.toggled.connect(lambda: self.render_area.set_moment(False))
+        self.invertmoment_radiobutton.stateChanged.connect(self.render_area.invert_moment)
+        self.bars_checkbox.stateChanged.connect(self.render_area.toggle_bars)
 
         # ------------------- LAYOUT----------------------
         layout = QtW.QGridLayout()
@@ -218,17 +243,19 @@ class MainWindow(QtW.QMainWindow):
         layout.addWidget(self.fyk_entry, 6, 1)
         layout.addWidget(self.ys_label, 7, 0)
         layout.addWidget(self.ys_entry, 7, 1)
-        layout.addWidget(mat_separator, 8, 0, 1, 2)
-        layout.addWidget(self.Md_label, 9, 0)
-        layout.addWidget(self.Md_entry, 9, 1)
-        layout.addWidget(adv_separator, 10, 0, 1, 2)
-        layout.addWidget(self.x_d_label, 11,0)
-        layout.addWidget(self.x_d_entry, 11, 1)
-        layout.addWidget(self.defaults_checkbox, 12, 0)
-        layout.addWidget(self.posmoment_radiobutton, 12, 2)
-        layout.addWidget(self.negmoment_radiobutton, 12, 3)
-        layout.addWidget(self.calc_button, 13, 1)
-        layout.addWidget(self.download_button, 13, 3)
+        layout.addWidget(self.dg_label, 8, 0)
+        layout.addWidget(self.dg_entry, 8, 1)
+        layout.addWidget(mat_separator, 9, 0, 1, 2)
+        layout.addWidget(self.Md_label, 10, 0)
+        layout.addWidget(self.Md_entry, 10, 1)
+        layout.addWidget(adv_separator, 11, 0, 1, 2)
+        layout.addWidget(self.x_d_label, 12,0)
+        layout.addWidget(self.x_d_entry, 12, 1)
+        layout.addWidget(self.defaults_checkbox, 13, 0)
+        layout.addWidget(self.invertmoment_radiobutton, 13, 2)
+        layout.addWidget(self.bars_checkbox, 13, 3)
+        layout.addWidget(self.calc_button, 14, 1)
+        layout.addWidget(self.download_button, 14, 3)
 
 
         layout.addWidget(self.render_area, 0, 2, 12, 2)
@@ -245,19 +272,9 @@ class MainWindow(QtW.QMainWindow):
             yc = float(self.yc_entry.text())
             fyk = int(self.fyk_entry.text())
             ys = float(self.ys_entry.text())
+            dg = int(self.dg_entry.text())
             Md = float(self.Md_entry.text())
             x_d = float(self.x_d_entry.text())
-
-            beam = RectBeam(b, h, expo, fck, yc, fyk, ys, Md, x_d)
-            As = beam.As()
-
-            self.render_area.input_values["b"] = b
-            self.render_area.input_values["h"] = h
-            self.render_area.input_values["c"] = beam.c
-            self.render_area.input_values["As1"] = As[0]
-            self.render_area.input_values["As2"] = As[1]
-
-            self.render_area.update()
 
         except ValueError:
             invalid_value = QtW.QMessageBox()
@@ -265,6 +282,32 @@ class MainWindow(QtW.QMainWindow):
             invalid_value.setWindowTitle("Invalid value")
             invalid_value.setIcon(QtW.QMessageBox.Warning)
             invalid_value.exec()
+
+        try:
+            beam = RectBeam(b, h, expo, fck, yc, fyk, ys, dg, Md, x_d)
+            As = beam.As()
+
+            # each has a tuple with the (n, bar) values
+            n_phi1 = beam.reinforcement_layout(As[0])
+            n_phi2 = beam.reinforcement_layout(As[1])
+        except ValueError:
+            invalid_value = QtW.QMessageBox()
+            invalid_value.setText("Warning: The value of Md exceeds the maximum limit for the specified beam dimensions.\n "
+                                  "Try increasing beam dimensions.")
+            invalid_value.setWindowTitle("Invalid value")
+            invalid_value.setIcon(QtW.QMessageBox.Warning)
+            invalid_value.exec()
+
+        self.render_area.input_values["b"] = b
+        self.render_area.input_values["h"] = h
+        self.render_area.input_values["c"] = beam.c
+        self.render_area.input_values["As1"] = As[0]
+        self.render_area.input_values["As2"] = As[1]
+        self.render_area.input_values["n1"] = n_phi1[0]
+        self.render_area.input_values["Phi_1"] = n_phi1[1]
+        self.render_area.input_values["n2"] = n_phi2[0]
+        self.render_area.input_values["Phi_2"] = n_phi1[1]
+        self.render_area.update()
 
     def set_defaults(self, state):
         if self.defaults_checkbox.isChecked():
@@ -275,6 +318,7 @@ class MainWindow(QtW.QMainWindow):
             self.yc_entry.setText(self.yc_plcholder)
             self.fyk_entry.setText(self.fyk_plcholder)
             self.ys_entry.setText(self.ys_plcholder)
+            self.dg_entry.setText(self.dg_plcholder)
             self.Md_entry.setText(self.Md_plcholder)
             self.x_d_entry.setText(self.x_d_plcholder)
 
@@ -286,6 +330,7 @@ class MainWindow(QtW.QMainWindow):
             self.yc_entry.setText("")
             self.fyk_entry.setText("")
             self.ys_entry.setText("")
+            self.dg_entry.setText("")
             self.Md_entry.setText("")
             self.x_d_entry.setText("")
 
