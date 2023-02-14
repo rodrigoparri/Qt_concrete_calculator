@@ -1,3 +1,4 @@
+from math import sqrt
 class RectBeam:
 
     cracking_exposure_classes = {
@@ -53,7 +54,7 @@ class RectBeam:
         40: 1256.64
     }
 
-    def __init__(self, b, h, expo, fck, yc, fyk, ys, Md, x_d):
+    def __init__(self, b, h, expo, fck, yc, fyk, ys, dg, Md, x_d):
         self.b = b
         self.h = h
         try:
@@ -63,14 +64,18 @@ class RectBeam:
 
         self.fck = fck
         self.yc = yc
+        self.fcd = self.fck / self.yc
         self.fyk = fyk
         self.ys = ys
-        self.Md = Md
+        self.fyd = self.fyk / self.ys
+        self.dg = dg
+        self.Md = Md * 1E6
         self.x_d = x_d
         # distance from tension reinforcement to top fibre
         self.ds1 = self.h - self.c
-        # compression block depth
+        # compression block depth introduced by the user
         self.x = self.ds1 * self.x_d
+        self.y = 0.8 * self.x
 
     @staticmethod
     def next_aprox(value, interval):
@@ -81,7 +86,7 @@ class RectBeam:
         aprox: approximated value
         """
         a = int(value / interval) * value + value
-        pass
+        return a
 
     def As(self):
         """
@@ -92,29 +97,21 @@ class RectBeam:
         prevAs2: is the compressed reinforcement result
         """
 
-        z = self.ds1 - 0.8 * self.x / 2
-        M = 0.8 * self.x * self.fck * self.b * z / self.yc
-        prevAs1 = 0
-        prevAs2 = 0
-        # might look redundant but think of the case Md<M
-        if self.Md > M:
-            while self.Md > M:
-                increAs1 = (self.Md - M) * self.ys / (z * self.fyk)  # passive reinforcement necessary
-                prevAs1 += increAs1
-                self.x = self.yc * (prevAs1 * self.fyk - prevAs2 * self.fyk) / (
-                            self.ys * .8 * self.b * self.fck)  # recalculate neutral fibre.
+        # compression block depth needed for solicitation Md
+        y = (-self.b*self.ds1*self.fcd+sqrt(
+            pow(self.b*self.ds1*self.fcd,2) - 2*self.b*self.fcd*self.Md)) / -(self.b * self.fcd)
 
-                if self.x / self.ds1 > self.x_d:  # strain needs to be checked.
-                    increAs2 = increAs1  # increment in top reinforcement is equal to the difference between
-                    # the current As1 and the previous value for As1.
-                    prevAs2 += increAs2
+        As1 = self.y * self.b * self.fcd / self.fyd
+        As2 = 0
 
-                M = (prevAs1 * self.fyk / self.ds1 - prevAs2 * self.fyk / self.c) / self.ys - 0.32 * self.x ** 2 * self.b * self.fck / self.yc
+        # check if user´s compression depth is enough
+        if y > self.y:
+            incre_y = y - self.y
+            increAs = incre_y * self.b * self.fcd / self.fyd
+            As1 += increAs
+            As2 += increAs
 
-        else:
-            prevAs1 = M * self.ys /(z * self.fyk)
-
-        return prevAs1, prevAs2
+        return As1, As2
 
     def reinforcement_layout(self, As):
         """
@@ -125,11 +122,19 @@ class RectBeam:
         bar: diameter of the comercial bar
         spacing: space in mm between bars
         """
+        for bar in self.steel:
+            As_phi = self.steel[bar]
+            # calculate the number of bars
+            n = As / As_phi
+            # aproximate the number to the next higher integer
+            n_phi = self.next_aprox(n, 1)
+            # calculate the width of all the bars and spacings
+            b = n_phi * As_phi + 2 * self.c + (n_phi - 1) * (self.dg + 5)
 
-        n = self.next_aprox(As, )
+            if self.b >= b:
+                return n, bar
+
         pass
-
-
 if __name__ == "__main__":
-    beam = RectBeam(200, 300, 30, 25, 1.5, 500, 1.15, 50*1E6, 0.3)
+    beam = RectBeam(200, 300, "X0", 25, 1.5, 500, 1.15, 100, 0.3)
     print(beam.As())
