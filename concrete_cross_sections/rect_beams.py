@@ -85,7 +85,7 @@ class RectBeam:
         :return:
         aprox: approximated value
         """
-        a = int(value / interval) * value + value
+        a = int(value / interval) + interval
         return a
 
     def As(self):
@@ -129,12 +129,17 @@ class RectBeam:
             # aproximate the number to the next higher integer
             n_phi = self.next_aprox(n, 1)
             # calculate the width of all the bars and spacings
-            b = n_phi * As_phi + 2 * self.c + (n_phi - 1) * (self.dg + 5)
+            b = n_phi * bar + 2 * self.c + (n_phi - 1) * (self.dg + 5)
 
             if self.b >= b:
-                return n, bar
+                return n_phi, bar
+            else:
+                continue
 
         pass
 if __name__ == "__main__":
-    beam = RectBeam(200, 300, "X0", 25, 1.5, 500, 1.15, 100, 0.3)
-    print(beam.As())
+    beam = RectBeam(200, 300, "X0", 25, 1.5, 500, 1.15, 20, 100, 0.3)
+    As = beam.As()
+    print(As)
+    print(beam.reinforcement_layout(As[0]))
+    print(beam.reinforcement_layout(As[1]))
