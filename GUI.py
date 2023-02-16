@@ -60,6 +60,7 @@ class RenderArea(QtW.QWidget):
         else:
             self.bars = True
 
+        self.update()
 
     def paintEvent(self, event) -> None:  # doesn´t return anything
 
@@ -76,6 +77,12 @@ class RenderArea(QtW.QWidget):
             b = self.input_values.get("b", 0)
             h = self.input_values.get("h", 0)
             c = self.input_values.get("c", 0)
+            n1 = self.input_values.get("n1", 0)
+            Phi_1 = self.input_values.get("Phi_1", 0)
+            n2 = self.input_values.get("n2", 0)
+            Phi_2 = self.input_values.get("Phi_2", 0)
+            radius1 = Phi_1 / 2
+            radius2 = Phi_2 / 2
 
             # reinforcement area
             As1 = self.input_values.get("As1", 0)
@@ -89,6 +96,10 @@ class RenderArea(QtW.QWidget):
             c_ = c * alpha
             As1_ = As1 * alpha
             As2_ = As2 * alpha
+            Phi_1_ = Phi_1 * alpha
+            Phi_2_ = Phi_2 * alpha
+            radius1_ = radius1 * alpha
+            radius2_ = radius2 * alpha
 
             # top left beam corner
             x = (width - b_) / 2
@@ -105,7 +116,37 @@ class RenderArea(QtW.QWidget):
             # check if moment is positive or negative.
             if self.moment == True:
                 if self.bars == True:
-                    pass
+
+                    # bottom line start and end coordinates
+                    x_bottom_line_start = x + c_ + radius1_
+                    y_bottom_line = y + h_ - c_ - radius1_
+                    x_bottom_line_end = x + b_ - c_ - radius1_
+
+                    # top line start and end coordinates
+                    x_top_line_start = x + c_ + radius2_
+                    y_top_line = y + c_ + radius2_
+                    x_top_line_end = x + b_ - c_ - radius2_
+
+                    # top guideline painting
+                    painter.drawLine(x_top_line_start,
+                                     y_top_line,
+                                     x_top_line_end,
+                                     y_top_line)
+
+                    # bottom guideline painting
+                    painter.drawLine(x_bottom_line_start,
+                                     y_bottom_line,
+                                     x_bottom_line_end,
+                                     y_bottom_line)
+
+                    for i in range(0, n1):
+                        # length of the guideline
+                        l = x_bottom_line_end - x_bottom_line_start
+                        # top left corner coordinates of the circumscribed rectangle
+                        x_top = x_bottom_line_start + l / n1 * i
+                        y_top = y_bottom_line - radius1_
+
+                        painter.drawEllipse(x_top, y_top, Phi_1_, Phi_1_)
                 else:
                     # top reinforcement rectangle
                     painter.drawRect(x + c_, y + c_, b_s, hc2)
@@ -213,6 +254,7 @@ class MainWindow(QtW.QMainWindow):
 
         self.invertmoment_radiobutton = QtW.QCheckBox("Invert moment")
         self.bars_checkbox = QtW.QCheckBox("Suggest bar layout")
+        self.bars_checkbox.setChecked(True)
 
         # moment_group = QtW.QButtonGroup()
         # moment_group.addButton(self.invertmoment_radiobutton)

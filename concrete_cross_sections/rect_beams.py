@@ -138,7 +138,7 @@ class RectBeam:
 
         pass
 if __name__ == "__main__":
-    beam = RectBeam(200, 300, "X0", 25, 1.5, 500, 1.15, 20, 100, 0.3)
+    beam = RectBeam(300, 500, "X0", 25, 1.5, 500, 1.15, 20, 300, 0.3)
     As = beam.As()
     print(As)
     print(beam.reinforcement_layout(As[0]))
